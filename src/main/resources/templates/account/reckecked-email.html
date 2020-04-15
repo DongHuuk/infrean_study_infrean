@@ -18,16 +18,6 @@
         <p class="lead" th:text="${email}">test@email.com</p>
     </div>
 
-    <div class="py-5 text-center" th:if="${account == null}">
-        <p class="lead">로그인을 하십시오.</p>
-        <h2>
-            로그인을 하세요
-        </h2>
-        <form th:type="get" action="#" th:action="@{/login}">
-            <button type="submit" class="btn btn-secondary">로그인 이동</button>
-        </form>
-    </div>
-
     <div class="py-5 text-center" th:if="${account != null &&!account.emailVerified}">
         <p class="lead">스터디 올레 이메일 확인</p>
         <h2>
