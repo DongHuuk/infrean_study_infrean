@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments.html :: head">
+    <title>Main page</title>
+</head>
+<body class="bg-light">
+<!-- Image and text -->
+<div th:replace="fragments.html :: main-nav"></div>
+
+<div class="container">
+    <div class="py-5 text-center">
+        <h2>스터디올레</h2>
+    </div>
+    <div class="py-5 text-center" th:if="${error != null}">
+        <div class="alert alert-danger" role="alert" th:text="${error}"></div>
+        <p class="lead" th:text="${email}">test@email.com</p>
+    </div>
+
+    <div class="py-5 text-center" th:if="${account == null}">
+        <p class="lead">로그인을 하십시오.</p>
+        <h2>
+            로그인을 하세요
+        </h2>
+        <form th:type="get" action="#" th:action="@{/login}">
+            <button type="submit" class="btn btn-secondary">로그인 이동</button>
+        </form>
+    </div>
+
+    <div class="py-5 text-center" th:if="${account != null &&!account.emailVerified}">
+        <p class="lead">스터디 올레 이메일 확인</p>
+        <h2>
+            이메일을 확인해야 정상적으로 사용이 가능합니다.
+        </h2>
+        <form method="post" action="#" th:action="@{/recheck-email}">
+            <button type="submit" class="btn btn-secondary">인증메일 재전송</button>
+        </form>
+    </div>
+
+    <div th:replace="fragments.html :: footer"></div>
+</div>
+</body>
+</html>

@@ -3,6 +3,7 @@ package com.infrean_study.domain;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -26,7 +27,9 @@ public class Account {
 
     private String emailCheckToken; // 이메일 토큰 값
 
-    private LocalDateTime joinedAt;
+    private LocalDateTime joinedAt; // 계정 생성 일자
+
+    private LocalDateTime emailTokenJoinedAt; // 계정 인증 일자
 
     private String bio; //프로필 정보
 
@@ -53,5 +56,18 @@ public class Account {
 
     public void generateEmailCheckToken() {
         this.emailCheckToken = UUID.randomUUID().toString();
+    }
+
+    public void completeSignUp() {
+        this.emailVerified = true;
+        this.emailTokenJoinedAt = LocalDateTime.now();
+    }
+
+    public boolean isValidToken(String token) {
+        return this.emailCheckToken.equals(token);
+    }
+
+    public Boolean canResendMailTimeCheck() {
+        return this.joinedAt.isBefore(LocalDateTime.now().minusHours(1));
     }
 }

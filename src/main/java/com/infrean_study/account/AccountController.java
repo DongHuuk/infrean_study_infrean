@@ -2,8 +2,6 @@ package com.infrean_study.account;
 
 import com.infrean_study.domain.Account;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
@@ -20,9 +18,9 @@ public class AccountController {
     @Autowired
     private SignUpFormValidator validator;
     @Autowired
-    private AccountRepository accountRepository;
+    private AccountService accountService;
     @Autowired
-    private JavaMailSender javaMailSender;
+    private AccountRepository accountRepository;
 
     @InitBinder("signUpForm")
     private void initBinder(WebDataBinder webDataBinder){
@@ -41,27 +39,58 @@ public class AccountController {
             return "account/sign-up";
         }
 
-        Account account = Account.builder()
-                .email(signUpForm.getEmail())
-                .nickname(signUpForm.getNickname())
-                .password(signUpForm.getPassword()) // TODO encoding 해야함
-                .studyEnrollmentResultByEmail(true)
-                .studyCreatedByWeb(true)
-                .studyUpdateByWeb(true)
-                .build();
-        final Account newAccount = accountRepository.save(account);
-
-        newAccount.generateEmailCheckToken(); // token 생성
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(newAccount.getEmail());
-        mailMessage.setSubject("회원가입 인증 메일"); // 제목
-        mailMessage.setText("/check-email-token?token=" + newAccount.getEmailCheckToken() + "&email="
-                + newAccount.getEmail()); //본문 토큰 인증
-        javaMailSender.send(mailMessage);
-
-        //TODO 가입 처리
+        final Account newAccount = accountService.processNewAccount(signUpForm);
+        accountService.login(newAccount);
         return "redirect:/";
-
     }
+
+    @GetMapping("/check-email-token")
+    public String checkEmailToken(String token, String email, Model model){
+        final Account account = accountRepository.findByEmail(email);
+        final String view = "account/checked-Email";
+        if(account == null){
+            model.addAttribute("error", "wrong.email");
+            return view;
+        }
+
+        if(!account.isValidToken(token)){
+            model.addAttribute("error", "wrong.token");
+            return view;
+        }
+
+        account.completeSignUp();
+        accountService.login(account);
+        model.addAttribute("numberOfuser", accountRepository.count());
+        model.addAttribute("nickname", account.getNickname());
+        return view;
+    }
+
+    @PostMapping("/recheck-email")
+    public String reCheckEmailToken(@CurrentUser Account account, Model model){
+        if(account == null){
+            return "index";
+        }
+
+        if(!account.canResendMailTimeCheck()){
+            model.addAttribute("error", "인증 메일은 1시간에 한번만 보낼 수 있습니다.");
+            model.addAttribute("email", account.getEmail());
+            return "account/reckecked-email";
+        }
+
+        accountService.sendSignUpConfirmEmail(account);
+        return "index";
+    }
+
+    @GetMapping("/recheck-email")
+    public String reCheckEmailToken_btn(@CurrentUser Account account, Model model){
+        if(account != null) {
+            model.addAttribute(account);
+            return "account/reckecked-email";
+        }
+
+        //TODO login 화면으로 이동시켜주기
+        return "index";
+    }
+
 
 }

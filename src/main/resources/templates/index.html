@@ -1,10 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>index page</title>
+<html lang="en"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments.html :: head">
+    <title>Main page</title>
 </head>
-<body>
-<h1>This is Index Page</h1>
+<body class="bg-light">
+<!-- Image and text -->
+<div th:replace="fragments.html :: main-nav"></div>
+
+<div class="container">
+    <div class="py-5 text-center">
+        <h2>스터디올레</h2>
+    </div>
+    <div class="alert alert-warning" role="alert" th:if="${account != null &&!account.emailVerified}">
+        스터디올레 가입을 완료하려면
+        <a href="#" th:href="@{'/recheck-email'}" class="alert-link">계정 인증 이메일을 확인</a>
+        하세요.
+    </div>
+
+    <div th:replace="fragments.html :: footer"></div>
+</div>
 </body>
 </html>
