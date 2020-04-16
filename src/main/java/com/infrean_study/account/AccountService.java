@@ -8,6 +8,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,14 +20,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class AccountService {
+@Transactional
+public class AccountService implements UserDetailsService {
 
     @Autowired
     private AccountRepository accountRepository;
-
     @Autowired
     private JavaMailSender javaMailSender;
-
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -64,5 +66,26 @@ public class AccountService {
                 newAccount.getPassword(),
                 List.of(new SimpleGrantedAuthority("ROLE_USER")));
         SecurityContextHolder.getContext().setAuthentication(token);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername(String emailOrNickname) throws UsernameNotFoundException {
+        Account account = accountRepository.findByEmail(emailOrNickname);
+        if(account == null){
+            account = accountRepository.findByNickname(emailOrNickname);
+        }
+
+        if(account == null){
+            throw new UsernameNotFoundException(emailOrNickname);
+        }
+
+        return new UserAccount(account); // pricipal로 구현한 객체를 넘겨줌
+    }
+
+    public Account complateSignUp(Account account) {
+        account.completeSignUp();
+        login(account);
+        return account;
     }
 }

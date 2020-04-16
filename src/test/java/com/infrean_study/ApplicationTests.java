@@ -59,6 +59,7 @@ class ApplicationTests {
                 .param("email", "kuroneko2@naver.com")
                 .param("password", "1234567890")
                 .with(csrf()))
+                .andDo(print())
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/"))
                 .andExpect(authenticated().withUsername("kuroneko"));
@@ -129,5 +130,7 @@ class ApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(view().name("index"));
     }
+
+
 
 }

@@ -2,21 +2,19 @@ package com.infrean_study.account;
 
 import com.infrean_study.domain.Account;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.validation.Valid;
 
 @Controller
-public class AccountController implements UserDetailsService {
+public class AccountController  {
 
     @Autowired
     private SignUpFormValidator validator;
@@ -61,9 +59,7 @@ public class AccountController implements UserDetailsService {
             return view;
         }
 
-        account.completeSignUp();
-        accountService.login(account);
-        final Account newAccount = accountRepository.save(account); // 일단은 내가 인의적으로 추가함
+        Account newAccount = accountService.complateSignUp(account);
 
         model.addAttribute("numberOfuser", accountRepository.count());
         model.addAttribute("nickname", newAccount.getNickname());
@@ -98,17 +94,18 @@ public class AccountController implements UserDetailsService {
     }
 
 
-    @Override
-    public UserDetails loadUserByUsername(String emailOrNickname) throws UsernameNotFoundException {
-        Account account = accountRepository.findByEmail(emailOrNickname);
-        if(account == null){
-            account = accountRepository.findByNickname(emailOrNickname);
+
+
+    @GetMapping("/profile/{nickname}")
+    public String viewProfile(@PathVariable String nickname, Model model, @CurrentUser Account account) {
+        final Account byNickname = accountRepository.findByNickname(nickname);
+        if(byNickname == null){
+            throw new IllegalArgumentException(nickname + "에 해당하는 사용자가 없습니다.");
         }
 
-        if(account == null){
-            throw new UsernameNotFoundException(emailOrNickname);
-        }
+        model.addAttribute(byNickname);
+        model.addAttribute("isOwner", byNickname.equals(account));
 
-        return new UserAccount(account); // pricipal로 구현한 객체를 넘겨줌
+        return "account/profile";
     }
 }
