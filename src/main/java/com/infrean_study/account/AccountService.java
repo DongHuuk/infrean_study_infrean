@@ -1,6 +1,7 @@
 package com.infrean_study.account;
 
 import com.infrean_study.domain.Account;
+import com.infrean_study.settings.Profile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -87,5 +88,13 @@ public class AccountService implements UserDetailsService {
         account.completeSignUp();
         login(account);
         return account;
+    }
+
+    public void updateProfile(Account account, Profile profile) {
+        account.setUrl(profile.getUrl());
+        account.setOccupation(profile.getOccupation());
+        account.setLocation(profile.getLocation());
+        account.setBio(profile.getBio());
+        accountRepository.save(account);
     }
 }
