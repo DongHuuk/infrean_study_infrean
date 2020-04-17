@@ -3,6 +3,7 @@ package com.infrean_study.settings;
 import com.infrean_study.account.AccountService;
 import com.infrean_study.account.CurrentUser;
 import com.infrean_study.domain.Account;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -26,10 +27,17 @@ public class SettingsController {
     public static final String SETTINGS_PASSWORD_VIEW_NAME = "settings/password";
     public static final String SETTINGS_PASSWORD_URL = "/settings/password";
 
+    public static final String SETTINGS_NOTIFICATION_VIEW_NAME = "settings/notifications";
+    public static final String SETTINGS_NOTIFICATION_URL = "/settings/notifications";
+
+
     @Autowired
     private AccountService accountService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private ModelMapper modelMapper;
+
 
     @InitBinder("passwordForm")
     public void initBinder(WebDataBinder webDataBinder) {
@@ -39,7 +47,7 @@ public class SettingsController {
     @GetMapping(SETTINGS_PROFILE_URL)
     public String profileUpdateForm(@CurrentUser Account account, Model model){
         model.addAttribute(account);
-        model.addAttribute(new Profile(account));
+        model.addAttribute(modelMapper.map(account, Profile.class));
 
         return SETTINGS_PROFILE_VIEW_NAME;
     }
@@ -77,6 +85,27 @@ public class SettingsController {
         attributes.addFlashAttribute("message", "패스워드를 변경했습니다");
 
         return "redirect:/" + SETTINGS_PASSWORD_VIEW_NAME;
+    }
+
+    @GetMapping(SETTINGS_NOTIFICATION_URL)
+    public String notificationUpdateForm(@CurrentUser Account account, Model model) {
+        model.addAttribute(account);
+        model.addAttribute(modelMapper.map(account, NotificationsForm.class));
+
+        return SETTINGS_NOTIFICATION_VIEW_NAME;
+    }
+
+    @PostMapping(SETTINGS_NOTIFICATION_URL)
+    public String notificationUpdate(@CurrentUser Account account, @Valid NotificationsForm notificationsForm, Errors errors,
+                                     RedirectAttributes redirectAttributes, Model model) {
+        if(errors.hasErrors()){
+            model.addAttribute(account);
+            return SETTINGS_NOTIFICATION_VIEW_NAME;
+        }
+
+        accountService.setNotification(account, notificationsForm);
+        redirectAttributes.addFlashAttribute("message", "알림 적용 완료");
+        return "redirect:/" + SETTINGS_NOTIFICATION_VIEW_NAME;
     }
 
 }

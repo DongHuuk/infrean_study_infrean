@@ -29,14 +29,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .mvcMatchers("/", "/login", "/sign-up", "/check-email-token"
-                        , "/email-login", "/check-email-login", "login-link", "/recheck-email").permitAll()
+                        , "/email-login", "/login-link", "/recheck-email").permitAll()
                 .mvcMatchers(HttpMethod.GET, "/profile/*").permitAll()
                 .anyRequest().authenticated();
 
         http.formLogin()
             .loginPage("/login").permitAll();
+
         http.logout()
                 .logoutSuccessUrl("/");
+
         http.rememberMe()
 //                .key("fewjopfew") // hashcode만 사용
                 .userDetailsService(accountService)

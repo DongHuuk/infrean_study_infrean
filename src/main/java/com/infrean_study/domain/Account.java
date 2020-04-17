@@ -3,7 +3,6 @@ package com.infrean_study.domain;
 import lombok.*;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -42,17 +41,17 @@ public class Account {
     @Lob @Basic(fetch = FetchType.EAGER)
     private String profileImage;
 
-    private boolean studyCreatedByEmail;
+    private boolean studyCreatedByEmail= false;
 
-    private boolean studyCreatedByWeb;
+    private boolean studyCreatedByWeb = true;
 
-    private boolean studyEnrollmentResultByEmail;
+    private boolean studyEnrollmentResultByEmail = false;
 
-    private boolean studyEnrollmentResultByWeb;
+    private boolean studyEnrollmentResultByWeb = true;
 
-    private boolean studyUpdateByEmail;
+    private boolean studyUpdateByEmail = false;
 
-    private boolean studyUpdateByWeb;
+    private boolean studyUpdateByWeb = true;
 
     public void generateEmailCheckToken() {
         this.emailCheckToken = UUID.randomUUID().toString();

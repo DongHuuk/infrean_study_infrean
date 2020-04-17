@@ -1,7 +1,9 @@
 package com.infrean_study.account;
 
 import com.infrean_study.domain.Account;
+import com.infrean_study.settings.NotificationsForm;
 import com.infrean_study.settings.Profile;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -30,6 +32,8 @@ public class AccountService implements UserDetailsService {
     private JavaMailSender javaMailSender;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Transactional
     public Account processNewAccount(SignUpForm signUpForm) {
@@ -91,16 +95,17 @@ public class AccountService implements UserDetailsService {
     }
 
     public void updateProfile(Account account, Profile profile) {
-        account.setUrl(profile.getUrl());
-        account.setOccupation(profile.getOccupation());
-        account.setLocation(profile.getLocation());
-        account.setBio(profile.getBio());
-        account.setProfileImage(profile.getProfileImage());
+        modelMapper.map(profile, account);
         accountRepository.save(account);
     }
 
     public void updatePassword(Account account, String password) {
         account.setPassword(passwordEncoder.encode(password));
+        accountRepository.save(account);
+    }
+
+    public void setNotification(Account account, NotificationsForm notificationsForm) {
+        modelMapper.map(notificationsForm, account);
         accountRepository.save(account);
     }
 }
