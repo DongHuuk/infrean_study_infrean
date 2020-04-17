@@ -16,7 +16,6 @@ public class Profile {
     private String occupation;
     @Length(max = 50)
     private String location;
-
     private String profileImage;
 
     public Profile(Account account){
