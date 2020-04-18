@@ -1,4 +1,4 @@
-package com.infrean_study.settings;
+package com.infrean_study.settings.form;
 
 import lombok.Data;
 

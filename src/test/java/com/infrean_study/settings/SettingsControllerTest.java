@@ -140,4 +140,20 @@ class SettingsControllerTest {
         Account account = accountRepository.findByNickname("kuroneko2");
         assertFalse(passwordEncoder.matches("qwertyuiop", account.getPassword()));
     }
+
+    @WithAccount("kuroneko2")
+    @Test
+    @DisplayName("닉네임 변경 성공")
+    void nickname_update_success() throws Exception{
+        mockMvc.perform(post(SettingsController.SETTINGS_PASSWORD_URL)
+                .param("newPassword", "qwertyuiop")
+                .param("newPasswordConfirm", "poiuytrewq")
+                .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name(SettingsController.SETTINGS_PASSWORD_VIEW_NAME))
+                .andExpect(model().hasErrors());
+
+        Account account = accountRepository.findByNickname("kuroneko2");
+        assertFalse(passwordEncoder.matches("qwertyuiop", account.getPassword()));
+    }
 }

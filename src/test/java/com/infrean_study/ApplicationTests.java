@@ -64,7 +64,6 @@ class ApplicationTests {
                 .andExpect(view().name("redirect:/"))
                 .andExpect(authenticated().withUsername("kuroneko"));
 
-
         final Account account = accountRepository.findByEmail("kuroneko2@naver.com");
         assertNotNull(account);
         assertNotEquals(account.getPassword(), "1234567890");
@@ -96,7 +95,7 @@ class ApplicationTests {
                 .param("email", "email@email.com"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("error"))
-                .andExpect(view().name("account/checkd-Email"))
+                .andExpect(view().name("account/checked-Email"))
                 .andExpect(unauthenticated());
 
     }
@@ -119,7 +118,7 @@ class ApplicationTests {
                 .andExpect(model().attributeDoesNotExist("error"))
                 .andExpect(model().attributeExists("nickname"))
                 .andExpect(model().attributeExists("numberOfuser"))
-                .andExpect(view().name("account/checkd-Email"))
+                .andExpect(view().name("account/checked-Email"))
                 .andExpect(authenticated());
 
     }

@@ -1,5 +1,7 @@
 package com.infrean_study.account;
 
+import com.infrean_study.account.AccountRepository;
+import com.infrean_study.account.SignUpForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;

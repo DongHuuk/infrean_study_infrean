@@ -10,11 +10,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 
 @Controller
 public class AccountController  {
+
+    public static final String EMAIL_LOGIN = "account/email-login";
 
     @Autowired
     private SignUpFormValidator validator;
@@ -22,10 +25,17 @@ public class AccountController  {
     private AccountService accountService;
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private EmailLoginFormValidator emailLoginFormValidator;
 
     @InitBinder("signUpForm")
-    private void initBinder(WebDataBinder webDataBinder){
+    private void initBinder_singUp(WebDataBinder webDataBinder){
         webDataBinder.addValidators(validator);
+    }
+
+    @InitBinder("emailLoginForm")
+    public void initBinder_emailLogin(WebDataBinder webDataBinder) {
+        webDataBinder.addValidators(emailLoginFormValidator);
     }
 
     @GetMapping("/sign-up")
@@ -83,8 +93,8 @@ public class AccountController  {
     }
 
     @GetMapping("/recheck-email")
-    public String reCheckEmailToken_btn(@CurrentUser Account account, Model model){
-        if(account != null) {
+    public String reCheckEmailToken_btn(@CurrentUser Account account, Model model) {
+        if (account != null) {
             model.addAttribute(account);
             return "account/reckecked-email";
         }
@@ -92,9 +102,6 @@ public class AccountController  {
         //TODO login 화면으로 이동시켜주기
         return "index";
     }
-
-
-
 
     @GetMapping("/profile/{nickname}")
     public String viewProfile(@PathVariable String nickname, Model model, @CurrentUser Account account) {
@@ -107,5 +114,34 @@ public class AccountController  {
         model.addAttribute("isOwner", byNickname.equals(account));
 
         return "account/profile";
+    }
+
+    @GetMapping("/email-login")
+    public String emailLoginForm(){
+        return EMAIL_LOGIN;
+    }
+
+    @PostMapping("/email-login")
+    public String emailLoginUpdate(@Valid EmailLoginForm emailLoginForm, Errors errors, Model model, RedirectAttributes redirectAttributes){
+        //TODO email Token 전송
+        if(errors.hasErrors()){
+            model.addAttribute("error");
+            return "redirect:/account/email-login";
+        }
+        accountService.sendLoginbyEmail(emailLoginForm.getEmail());
+        redirectAttributes.addFlashAttribute("message", "이메일 인증 메일을 발송했습니다");
+        return EMAIL_LOGIN;
+    }
+
+    @GetMapping("/login-email-token")
+    public String loginEmailCheck(String token, String email, Model model){
+        Account byNickname = accountRepository.findByEmail(email);
+
+        if(byNickname == null && !byNickname.isValidToken(token)){
+            model.addAttribute("error");
+            return "account/loign-in-by-email";
+        }
+        accountService.login(byNickname);
+        return "account/loign-in-by-email";
     }
 }

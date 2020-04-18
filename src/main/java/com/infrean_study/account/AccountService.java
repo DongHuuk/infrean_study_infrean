@@ -1,15 +1,14 @@
 package com.infrean_study.account;
 
 import com.infrean_study.domain.Account;
-import com.infrean_study.settings.NotificationsForm;
-import com.infrean_study.settings.Profile;
+import com.infrean_study.settings.form.NotificationsForm;
+import com.infrean_study.settings.form.Profile;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -65,6 +64,18 @@ public class AccountService implements UserDetailsService {
         javaMailSender.send(mailMessage);
     }
 
+    public void sendLoginbyEmail(String email){
+        Account account = accountRepository.findByEmail(email);
+        account.generateEmailCheckToken();
+
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(account.getEmail());
+        mailMessage.setSubject("회원가입 인증 메일"); // 제목
+        mailMessage.setText("/login-email-token?token=" + account.getEmailCheckToken() + "&email="
+                + account.getEmail()); //본문 토큰 인증
+        javaMailSender.send(mailMessage);
+    }
+
     public void login(Account newAccount) {
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                 new UserAccount(newAccount),
@@ -76,7 +87,7 @@ public class AccountService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String emailOrNickname) throws UsernameNotFoundException {
-        Account account = accountRepository.findByEmail(emailOrNickname);
+        Account account = accountRepository.findByNickname(emailOrNickname);
         if(account == null){
             account = accountRepository.findByNickname(emailOrNickname);
         }
@@ -107,5 +118,11 @@ public class AccountService implements UserDetailsService {
     public void setNotification(Account account, NotificationsForm notificationsForm) {
         modelMapper.map(notificationsForm, account);
         accountRepository.save(account);
+    }
+
+    public void updateNickname(Account account, String newNickname) {
+        account.setNickname(newNickname);
+        accountRepository.save(account);
+        login(account);
     }
 }

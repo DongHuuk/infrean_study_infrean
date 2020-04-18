@@ -1,5 +1,6 @@
-package com.infrean_study.settings;
+package com.infrean_study.settings.validator;
 
+import com.infrean_study.settings.form.PasswordForm;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
