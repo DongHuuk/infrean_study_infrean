@@ -3,26 +3,28 @@ package com.infrean_study.settings;
 import com.infrean_study.account.AccountService;
 import com.infrean_study.account.CurrentUser;
 import com.infrean_study.domain.Account;
+import com.infrean_study.domain.Tag;
 import com.infrean_study.settings.form.NicknameForm;
 import com.infrean_study.settings.form.NotificationsForm;
 import com.infrean_study.settings.form.PasswordForm;
 import com.infrean_study.settings.form.Profile;
 import com.infrean_study.settings.validator.NicknameValidator;
 import com.infrean_study.settings.validator.PasswordFormValidator;
+import com.infrean_study.tag.TagForm;
+import com.infrean_study.tag.TagRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 @Controller
 public class SettingsController {
@@ -39,6 +41,9 @@ public class SettingsController {
     public static final String SETTINGS_ACCOUNT_VIEW_NAME = "settings/account";
     public static final String SETTINGS_ACCOUNT_URL = "/settings/account";
 
+    public static final String SETTINGS_TAGS_VIEW_NAME = "settings/tags";
+    public static final String SETTINGS_TAGS_URL = "/" + SETTINGS_TAGS_VIEW_NAME;
+
     @Autowired
     private AccountService accountService;
     @Autowired
@@ -47,12 +52,15 @@ public class SettingsController {
     private ModelMapper modelMapper;
     @Autowired
     private NicknameValidator nicknameValidator;
+    @Autowired
+    private TagRepository tagRepository;
 
 
     @InitBinder("passwordForm")
     public void initBinder_password(WebDataBinder webDataBinder) {
         webDataBinder.addValidators(new PasswordFormValidator());
     }
+
     @InitBinder("nicknameForm")
     public void initBinder_nickname(WebDataBinder webDataBinder) {
         webDataBinder.addValidators(nicknameValidator);
@@ -123,7 +131,7 @@ public class SettingsController {
     }
 
     @GetMapping(SETTINGS_ACCOUNT_URL)
-    public String nicknameUpdateForm(@CurrentUser Account account,Model model){
+    public String nicknameUpdateForm(@CurrentUser Account account, Model model) {
         model.addAttribute(account);
         model.addAttribute(modelMapper.map(account, NicknameForm.class));
 
@@ -134,7 +142,7 @@ public class SettingsController {
     public String nicknameUpdate(@CurrentUser Account account, @Valid NicknameForm nicknameForm, Errors errors,
                                  Model model, RedirectAttributes redirectAttributes) {
 
-        if (errors.hasErrors()){
+        if (errors.hasErrors()) {
             model.addAttribute(account);
             return SETTINGS_ACCOUNT_VIEW_NAME;
         }
@@ -144,4 +152,27 @@ public class SettingsController {
         return "redirect:/" + SETTINGS_ACCOUNT_VIEW_NAME;
     }
 
+    @GetMapping(SETTINGS_TAGS_URL)
+    public String updateTags(@CurrentUser Account account, Model model) {
+        model.addAttribute(account);
+        return SETTINGS_TAGS_VIEW_NAME;
+    }
+
+    @PostMapping("/settings/tags/add")
+    @ResponseBody
+    public ResponseEntity addTags(@CurrentUser Account account, @RequestBody TagForm tagForm) {
+        String title = tagForm.getTagTitle();
+//        Tag tag = tagRepository.findByTitle(title).orElseGet(tagRepository.save(Tag.builder()
+//                .title(tagForm.getTagTitle())
+//                .build())); used Optional<?>
+
+        Tag tag = tagRepository.findByTitle(tagForm.getTagTitle());
+        if(tag == null){
+            tag = tagRepository.save(Tag.builder().title(tagForm.getTagTitle()).build());
+        }
+
+        accountService.addTag(account, tag);
+
+        return ResponseEntity.ok().build();
+    }
 }

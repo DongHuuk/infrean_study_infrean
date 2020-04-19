@@ -1,6 +1,7 @@
 package com.infrean_study.account;
 
 import com.infrean_study.domain.Account;
+import com.infrean_study.domain.Tag;
 import com.infrean_study.settings.form.NotificationsForm;
 import com.infrean_study.settings.form.Profile;
 import org.modelmapper.ModelMapper;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -124,5 +126,12 @@ public class AccountService implements UserDetailsService {
         account.setNickname(newNickname);
         accountRepository.save(account);
         login(account);
+    }
+
+    public void addTag(Account account, Tag tag) {
+        Optional<Account> byId = accountRepository.findById(account.getId());
+        byId.ifPresent(a -> a.getTags().add(tag));
+
+//        accountRepository - lazy loading
     }
 }
