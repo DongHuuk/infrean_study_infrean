@@ -1,5 +1,7 @@
 package com.infrean_study.settings;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infrean_study.account.AccountService;
 import com.infrean_study.account.CurrentUser;
 import com.infrean_study.domain.Account;
@@ -24,7 +26,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Controller
 public class SettingsController {
@@ -54,6 +60,8 @@ public class SettingsController {
     private NicknameValidator nicknameValidator;
     @Autowired
     private TagRepository tagRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
     @InitBinder("passwordForm")
@@ -153,12 +161,18 @@ public class SettingsController {
     }
 
     @GetMapping(SETTINGS_TAGS_URL)
-    public String updateTags(@CurrentUser Account account, Model model) {
+    public String updateTags(@CurrentUser Account account, Model model) throws JsonProcessingException {
         model.addAttribute(account);
+        final Set<Tag> tags = accountService.getTags(account);
+        model.addAttribute("tags", tags.stream().map(Tag::getTitle).collect(Collectors.toList()));
+
+        final List<String> collect = tagRepository.findAll().stream().map(Tag::getTitle).collect(Collectors.toList());
+        model.addAttribute("whitelist", objectMapper.writeValueAsString(collect));
+
         return SETTINGS_TAGS_VIEW_NAME;
     }
 
-    @PostMapping("/settings/tags/add")
+    @PostMapping(SETTINGS_TAGS_URL + "/add")
     @ResponseBody
     public ResponseEntity addTags(@CurrentUser Account account, @RequestBody TagForm tagForm) {
         String title = tagForm.getTagTitle();
@@ -166,13 +180,26 @@ public class SettingsController {
 //                .title(tagForm.getTagTitle())
 //                .build())); used Optional<?>
 
-        Tag tag = tagRepository.findByTitle(tagForm.getTagTitle());
+        Tag tag = tagRepository.findByTitle(title);
         if(tag == null){
-            tag = tagRepository.save(Tag.builder().title(tagForm.getTagTitle()).build());
+            tag = tagRepository.save(Tag.builder().title(title).build());
         }
 
         accountService.addTag(account, tag);
 
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(SETTINGS_TAGS_URL + "/remove")
+    @ResponseBody
+    public ResponseEntity removeTags(@CurrentUser Account account, @RequestBody TagForm tagForm) {
+        String title = tagForm.getTagTitle();
+        Tag tag = tagRepository.findByTitle(tagForm.getTagTitle());
+        if(tag == null){
+            return ResponseEntity.badRequest().build();
+        }
+
+        accountService.removeTag(account, tag);
         return ResponseEntity.ok().build();
     }
 }
