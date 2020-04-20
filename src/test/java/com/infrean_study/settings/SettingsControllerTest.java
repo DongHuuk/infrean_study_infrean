@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.infrean_study.settings.SettingsController.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -48,11 +49,11 @@ class SettingsControllerTest {
     @DisplayName("프로필 수정하기 - 입력값 정상")
     void profile_test_success() throws Exception{
         final String bioText = "소개를 수정했을 경우";
-        mockMvc.perform(post(SettingsController.SETTINGS_PROFILE_URL)
+        mockMvc.perform(post(ROOT + SETTINGS + PROFILE)
                 .param("bio", bioText)
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(SettingsController.SETTINGS_PROFILE_URL))
+                .andExpect(redirectedUrl(ROOT + SETTINGS + PROFILE))
                 .andExpect(flash().attributeExists());
 
         final Account account = accountRepository.findByNickname("kuroneko2");
@@ -64,11 +65,11 @@ class SettingsControllerTest {
     @DisplayName("프로필 수정하기 - 입력값 실패")
     void profile_test_error() throws Exception{
         final String bioText = "소개를 수정했을 경우소개를 수정했을 경우소개를 수정했을 경우소개를 수정했을 경우소개를 수정했을 경우소개를 수정했을 경우";
-        mockMvc.perform(post(SettingsController.SETTINGS_PROFILE_URL)
+        mockMvc.perform(post(ROOT + SETTINGS + PROFILE)
                 .param("bio", bioText)
                 .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(view().name(SettingsController.SETTINGS_PROFILE_VIEW_NAME))
+                .andExpect(view().name(SETTINGS + PROFILE))
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("profile"))
                 .andExpect(model().hasErrors());
@@ -81,8 +82,7 @@ class SettingsControllerTest {
     @Test
     @DisplayName("프로필 수정 폼")
     void profile_test_form() throws Exception{
-        final String bioText = "소개를 수정했을 경우";
-        mockMvc.perform(get(SettingsController.SETTINGS_PROFILE_URL))
+        mockMvc.perform(get(ROOT + SETTINGS + PROFILE))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("profile"));
@@ -92,7 +92,7 @@ class SettingsControllerTest {
     @Test
     @DisplayName("비밀번호 수정 폼")
     void password_update_form() throws Exception {
-        mockMvc.perform(get(SettingsController.SETTINGS_PASSWORD_URL))
+        mockMvc.perform(get(ROOT + SETTINGS + PASSWORD))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("passwordForm"));
@@ -102,12 +102,12 @@ class SettingsControllerTest {
     @Test
     @DisplayName("비밀번호 수정 성공")
     void password_update_success() throws Exception{
-        mockMvc.perform(post(SettingsController.SETTINGS_PASSWORD_URL)
+        mockMvc.perform(post(ROOT + SETTINGS + PASSWORD)
                 .param("newPassword", "qwertyui")
                 .param("newPasswordConfirm", "qwertyui")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl(SettingsController.SETTINGS_PASSWORD_URL))
+                .andExpect(redirectedUrl(ROOT + SETTINGS + PASSWORD))
                 .andExpect(flash().attributeExists("message"))
                 .andExpect(model().hasNoErrors());
 
@@ -119,12 +119,12 @@ class SettingsControllerTest {
     @Test
     @DisplayName("비밀번호 수정 실패 - front")
     void password_update_fail() throws Exception{
-        mockMvc.perform(post(SettingsController.SETTINGS_PASSWORD_URL)
+        mockMvc.perform(post(ROOT + SETTINGS + PASSWORD)
                 .param("newPassword", "1111")
                 .param("newPasswordConfirm", "1245")
                 .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(view().name(SettingsController.SETTINGS_PASSWORD_VIEW_NAME))
+                .andExpect(view().name(SETTINGS + PASSWORD))
                 .andExpect(model().hasErrors());
 
         Account account = accountRepository.findByNickname("kuroneko2");
@@ -135,12 +135,12 @@ class SettingsControllerTest {
     @Test
     @DisplayName("비밀번호 수정 실패 - back")
     void password_update_fail_server() throws Exception{
-        mockMvc.perform(post(SettingsController.SETTINGS_PASSWORD_URL)
+        mockMvc.perform(post(ROOT + SETTINGS + PASSWORD)
                 .param("newPassword", "qwertyuiop")
                 .param("newPasswordConfirm", "poiuytrewq")
                 .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(view().name(SettingsController.SETTINGS_PASSWORD_VIEW_NAME))
+                .andExpect(view().name(SETTINGS + PASSWORD))
                 .andExpect(model().hasErrors());
 
         Account account = accountRepository.findByNickname("kuroneko2");
@@ -151,12 +151,12 @@ class SettingsControllerTest {
     @Test
     @DisplayName("닉네임 변경 성공")
     void nickname_update_success() throws Exception{
-        mockMvc.perform(post(SettingsController.SETTINGS_PASSWORD_URL)
+        mockMvc.perform(post(ROOT + SETTINGS + PASSWORD)
                 .param("newPassword", "qwertyuiop")
                 .param("newPasswordConfirm", "poiuytrewq")
                 .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(view().name(SettingsController.SETTINGS_PASSWORD_VIEW_NAME))
+                .andExpect(view().name(SETTINGS + PASSWORD))
                 .andExpect(model().hasErrors());
 
         Account account = accountRepository.findByNickname("kuroneko2");
@@ -167,8 +167,8 @@ class SettingsControllerTest {
     @Test
     @DisplayName("계정의 태그 수정 폼")
     void updateTagsForm() throws Exception {
-        mockMvc.perform(get(SettingsController.SETTINGS_TAGS_URL))
-                .andExpect(view().name(SettingsController.SETTINGS_TAGS_VIEW_NAME))
+        mockMvc.perform(get(ROOT + SETTINGS + TAGS))
+                .andExpect(view().name(SETTINGS + TAGS))
                 .andExpect(model().attributeExists("account"))
                 .andExpect(model().attributeExists("tags"))
                 .andExpect(model().attributeExists("whitelist"));
@@ -181,7 +181,7 @@ class SettingsControllerTest {
         TagForm tagForm = new TagForm();
         tagForm.setTagTitle("newTag");
 
-        mockMvc.perform(post(SettingsController.SETTINGS_TAGS_URL + "/add")
+        mockMvc.perform(post(ROOT + SETTINGS + TAGS + "/add")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(tagForm))
                 .with(csrf()))
@@ -206,7 +206,7 @@ class SettingsControllerTest {
         TagForm tagForm = new TagForm();
         tagForm.setTagTitle("newTag");
 
-        mockMvc.perform(post(SettingsController.SETTINGS_TAGS_URL + "/remove")
+        mockMvc.perform(post(ROOT + SETTINGS + TAGS + "/remove")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(tagForm))
                 .with(csrf()))

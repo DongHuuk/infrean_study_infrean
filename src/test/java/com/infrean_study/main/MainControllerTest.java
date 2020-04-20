@@ -25,12 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class MainControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private AccountService accountService;
-    @Autowired
-    private AccountRepository accountRepository;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private AccountService accountService;
+    @Autowired private AccountRepository accountRepository;
 
 
     @BeforeEach
@@ -96,5 +93,4 @@ class MainControllerTest {
                 .andExpect(redirectedUrl("/"))
                 .andExpect(unauthenticated());
     }
-
 }

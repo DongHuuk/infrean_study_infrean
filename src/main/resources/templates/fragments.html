@@ -119,3 +119,13 @@
         },false)
     }())
 </script>
+
+<script type="application/javascript" th:inline="javascript" th:fragment="ajax-csrf-header"> // ajax에 csrf 추가해서 보내는 코드
+$(function () {
+    var csrfToken = /*[[${_csrf.token}]]*/ null;
+    var csrfHeader = /*[[${_csrf.headerName}]]*/ null;
+    $(document).ajaxSend(function (e, xhr, options) {
+        xhr.setRequestHeader(csrfHeader, csrfToken);
+    });
+});
+</script>

@@ -2,6 +2,8 @@ package com.infrean_study;
 
 import com.infrean_study.account.AccountRepository;
 import com.infrean_study.domain.Account;
+import com.infrean_study.mail.EmailMessage;
+import com.infrean_study.mail.EmailService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +40,7 @@ class ApplicationTests {
     private AccountRepository accountRepository;
 
     @MockBean
-    JavaMailSender javaMailSender;
+    EmailService emailService;
 
     @Test
     @DisplayName("회원 가입 페이지 확인")
@@ -69,7 +71,7 @@ class ApplicationTests {
         assertNotEquals(account.getPassword(), "1234567890");
         assertNotNull(account.getEmailCheckToken());
 
-        then(javaMailSender).should().send(any(SimpleMailMessage.class));
+        then(emailService).should().sendEmail(any(EmailMessage.class));
     }
 
     @DisplayName("회원 가입 처리 - 입력값 오류")
