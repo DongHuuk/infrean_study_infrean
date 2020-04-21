@@ -1,5 +1,6 @@
 package com.infrean_study.account;
 
+import com.infrean_study.config.AppProperties;
 import com.infrean_study.domain.Account;
 import com.infrean_study.domain.Tag;
 import com.infrean_study.domain.Zone;
@@ -20,6 +21,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -39,6 +42,10 @@ public class AccountService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private TemplateEngine templateEngine;
+    @Autowired
+    private AppProperties appProperties;
 
     @Transactional
     public Account processNewAccount(SignUpForm signUpForm) {
@@ -55,22 +62,38 @@ public class AccountService implements UserDetailsService {
     }
 
     public void sendSignUpConfirmEmail(Account newAccount){
+        Context context = new Context();
+        context.setVariable("link", "/check-email-token?token=" + newAccount.getEmailCheckToken() +
+                "&email=" + newAccount.getEmail());
+        context.setVariable("nickname", newAccount.getNickname());
+        context.setVariable("linkName", "이메일 인증하기");
+        context.setVariable("message", "스터디 테스트 프로젝트 인증 링크 입니다. 클릭하시면 인증이 완료됩니다.");
+        context.setVariable("host", appProperties.getHost());
+
+        String process = templateEngine.process("mail/simple-link", context);
         EmailMessage emailMessage = EmailMessage.builder()
                 .to(newAccount.getEmail())
                 .subject("회원가입 인증 메일")
-                .message("/check-email-token?token=" + newAccount.getEmailCheckToken() +
-                        "&email=" + newAccount.getEmail())
+                .message(process)
                 .build();
         emailService.sendEmail(emailMessage);
     }
 
     public void sendLoginbyEmail(String email){
         Account account = accountRepository.findByEmail(email);
+        Context context = new Context();
+        context.setVariable("link", "/login-email-token?token=" + account.getEmailCheckToken() + "&email="
+                + account.getEmail());
+        context.setVariable("nickname", account.getNickname());
+        context.setVariable("linkName", "이메일로 로그인하기");
+        context.setVariable("message", "스터디 테스트 프로젝트 이메일로 로그인하는 링크입니다. 링크를 클릭해주세요.");
+        context.setVariable("host", appProperties.getHost());
+        String process = templateEngine.process("mail/simple-link", context);
+
         EmailMessage emailMessage = EmailMessage.builder()
                 .to(account.getEmail())
                 .subject("로그인 링크")
-                .message("/login-email-token?token=" + account.getEmailCheckToken() + "&email="
-                        + account.getEmail())
+                .message(process)
                 .build();
         emailService.sendEmail(emailMessage);
     }
