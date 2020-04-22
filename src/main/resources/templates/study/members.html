@@ -8,16 +8,20 @@
 <!-- Image and text -->
 <div th:replace="fragments.html :: main-nav"></div>
 <div th:replace="fragments.html :: study-banner"></div>
+
 <div class="container">
     <div th:replace="fragments.html :: study-info"></div>
-    <div th:replace="fragments.html :: study-menu (studyMenu='info')"></div>
+    <div th:replace="fragments.html :: study-menu (studyMenu='members')"></div>
 
-    <div class="row px-3 justify-content-center">
-        <div class="col-10 pt-3" th:utext="${study.fullDescription}"></div>
-    </div>
+    <div th:replace="fragments.html :: member-list (members = ${study.managers}, isManager= ${true})"></div>
+    <div th:replace="fragments.html :: member-list (members = ${study.members}, isManager= ${false})"></div>
 
     <div th:replace="fragments.html :: footer"></div>
 </div>
-<script th:replace="fragments.html :: tooltip"></script>
+<script type="application/javascript">
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
 </body>
 </html>

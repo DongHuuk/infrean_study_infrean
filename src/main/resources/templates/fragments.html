@@ -102,7 +102,7 @@
 <footer th:fragment="footer">
     <div class="row justify-content-center">
         <img src="/images/page-icon.png" width="60" alt="">
-        <small class="d-block mb-3 text-muted"> 2020</small>
+        <small class="d-block mb-3 text-muted center"> 2020</small>
     </div>
 </footer>
 
@@ -138,7 +138,7 @@ $(function () {
 
 <div th:fragment="study-banner" th:if="${study.useBanner}" class="row" id="study-logo">
     <img th:src="${study.image}"/>
-</div>
+</div>w
 
 <div th:fragment="study-info">
     <div class="row pt-4 text-left justify-content-center bg-light">
@@ -225,4 +225,46 @@ $(function () {
             <i class="fa fa-cog"></i> 설정
         </a>
     </nav>
+</div>
+
+<div th:fragment="member-list (members, isManager)" class="row px-3 justify-content-center">
+    <ul class="list-unstyled col-10">
+        <li class="media mt-3" th:each="member: ${members}">
+            <svg th:if="${#strings.isEmpty(member?.profileImage)}" th:data-jdenticon-value="${member.nickname}" width="64" height="64" class="rounded border bg-light mr-3"></svg>
+            <img th:if="${!#strings.isEmpty(member?.profileImage)}" th:src="${member?.profileImage}" width="64" height="64" class="rounded border mr-3"/>
+            <div class="media-body">
+                <h5 class="mt-0 mb-1"><span th:text="${member.nickname}"></span>
+                    <span th:if="${isManager}" class="badge badge-primary">관리자</span></h5>
+                <span th:text="${member.bio}"></span>
+            </div>
+        </li>
+    </ul>
+</div>
+
+<div th:fragment="study-settings-menu (currentMenu)" class="list-group">
+    <a class="list-group-item list-group-item-action" th:classappend="${currentMenu == 'description'}? active" href="#" th:href="@{'/study/' + ${study.path} + 'description'}">소개</a>
+    <a class="list-group-item list-group-item-action" th:classappend="${currentMenu == 'image'}? active" href="#" th:href="@{'/study/' + ${study.path} + '/settings/banner'}">배너 이미지</a>
+    <a class="list-group-item list-group-item-action" th:classappend="${currentMenu == 'tags'}? active" href="#" th:href="@{'/study/' + ${study.path} + '/settings/tags'}">스터디 주제</a>
+    <a class="list-group-item list-group-item-action" th:classappend="${currentMenu == 'zones'}? active" href="#" th:href="@{'/study/' + ${study.path} + '/settings/zones'}">활동 지역</a>
+    <a class="list-group-item list-group-item-action list-group-item-danger" th:classappend="${currentMenu == 'study'}? active" href="#" th:href="@{'/study/' + ${study.path} + '/settings/study'}">스터디</a>
+</div>
+
+<script th:fragment="tooltip" type="application/javascript" >
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+
+<div th:fragment="summernote">
+    <script src="/node_modules/summernote/dist/summernote-bs4.js"></script>
+    <script type="application/javascript">
+        $(function () {
+            $('#fullDescription').summernote({
+                fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Noto Sans KR', 'Merriweather'],
+                placeholder: '스터디의 목표, 일정, 진행 방식, 사용할 교재 또는 인터넷 강좌 그리고 모집중인 스터디원 등 스터디에 대해 자세히 적어주세요',
+                tabSize: 2,
+                height: 300
+            });
+        });
+    </script>
 </div>
