@@ -13,7 +13,9 @@
         <div th:replace="fragments.html :: study-info"></div>
         <div th:replace="fragments.html :: study-menu(currentMenu='settings')"></div>
         <div class="row mt-3 justify-content-center">
-            <div th:replace="fragments.html :: study-settings-menu(currentMenu='description')"></div>
+            <div class="col-2">
+                <div th:replace="fragments.html :: study-settings-menu(currentMenu='description')"></div>
+            </div>
             <div class="col-8">
                 <div th:if="${message}" class="alert alert-info alert-dismissible fade show mt-3" role="alert">
                     <span th:text="${message}">메시지</span>

@@ -59,7 +59,7 @@ public class StudyController {
 
     @GetMapping("/study/{path}")
     public String voidStudy(@CurrentUser Account account, @PathVariable String path, Model model) {
-        final Study study = studyService.getStudyToUpdate(path);
+        final Study study = studyService.getStudyToUpdate(path, account);
         model.addAttribute(account);
         model.addAttribute(study);
 

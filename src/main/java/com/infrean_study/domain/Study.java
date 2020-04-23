@@ -4,6 +4,8 @@ import com.infrean_study.account.UserAccount;
 import lombok.*;
 
 import javax.persistence.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,13 +21,17 @@ import java.util.Set;
 @NoArgsConstructor @Builder @EqualsAndHashCode(of = "id")
 public class Study {
 
+    public static String DEFAULT_IMAGE = "default-banner.jpg";
+
     @Id @GeneratedValue
     private Long id;
 
     @ManyToMany
+    @Builder.Default
     private Set<Account> managers = new HashSet<>();
 
     @ManyToMany
+    @Builder.Default
     private Set<Account> members = new HashSet<>();
 
     @Column(unique = true)
@@ -42,9 +48,11 @@ public class Study {
     private String image;
 
     @ManyToMany
+    @Builder.Default
     private Set<Zone> zones = new HashSet<>();
 
     @ManyToMany
+    @Builder.Default
     private Set<Tag> tags = new HashSet<>();
 
     private LocalDateTime publishedDateTime;
@@ -65,18 +73,27 @@ public class Study {
         this.managers.add(account);
     }
 
-    public boolean isJoinable(UserAccount userAccount) {
-        final Account account = userAccount.getAccount();
+    public boolean isJoinable(UserAccount account) {
         return this.isPublished() && this.isRecruiting() &&
-                !this.members.contains(account) && !this.managers.contains(account);
+                !this.members.contains(account.getAccount()) && !this.managers.contains(account.getAccount());
     }
 
-    public boolean isMember(UserAccount userAccount) {
-        return this.members.contains(userAccount.getAccount());
+    public boolean isMember(UserAccount account) {
+        return this.members.contains(account.getAccount());
     }
 
-    public boolean isManager(UserAccount userAccount) {
-        return this.managers.contains(userAccount.getAccount());
+    public boolean isManager(UserAccount Account) {
+        return this.managers.contains(Account.getAccount());
+    }
+    public boolean isManager(Account Account) {
+        return this.managers.contains(Account);
     }
 
+    public String getEncodePath() {
+        return URLEncoder.encode(this.path, StandardCharsets.UTF_8);
+    }
+
+    public String getImage(){
+        return image != null ? image : DEFAULT_IMAGE;
+    }
 }
