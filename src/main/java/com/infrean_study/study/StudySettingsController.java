@@ -45,7 +45,6 @@ public class StudySettingsController {
         return "study/settings/description";
     }
 
-
     @PostMapping("/description")
     public String descriptionUpdate(@CurrentUser Account account, @Valid StudyDescriptionForm descriptionForm,
                                     Errors errors, @PathVariable String path, Model model, RedirectAttributes redirectAttributes){
@@ -124,7 +123,7 @@ public class StudySettingsController {
         if(tag == null){
             tag = studyTagFormRepository.save(Tag.builder().title(title).build());
         }
-        studyService.addStudyTag(path, tag);
+        studyService.addStudyTag(path, tag, account);
 
         return ResponseEntity.ok().build();
     }
@@ -137,7 +136,7 @@ public class StudySettingsController {
         if(tag == null){
             return ResponseEntity.badRequest().build();
         }
-        studyService.removeStudyTag(title, tag);
+        studyService.removeStudyTag(path, tag, account);
 
         return ResponseEntity.ok().build();
     }
@@ -163,7 +162,7 @@ public class StudySettingsController {
             return ResponseEntity.badRequest().build();
         }
 
-        studyService.addStudyZone(path, zone);
+        studyService.addStudyZone(path, zone, account);
         return ResponseEntity.ok().build();
     }
 
@@ -178,6 +177,109 @@ public class StudySettingsController {
 
         studyService.removeStudyZone(path, zone);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/study")
+    public String studyForm(@CurrentUser Account account, @PathVariable String path, Model model){
+        Study study = studyService.getStudyToUpdateTFValues(path, account);
+        //TODO 오픈 여부만 검색하도록 재구현
+        model.addAttribute(account);
+        model.addAttribute(study);
+
+        return "study/settings/study";
+    }
+
+    @PostMapping("/study/publish")
+    public String studyPublish(@CurrentUser Account account, @PathVariable String path, Boolean publish,
+                               RedirectAttributes attributes, Model model) {
+        Study study = studyService.getStudyToUpdateTFValues(path, account);
+        studyService.setPublish(study);
+        model.addAttribute(account);
+        model.addAttribute(study);
+
+        attributes.addFlashAttribute("message", "스터디를 공개합니다.");
+        return "redirect:/study/"+ study.getEncodePath() +"/settings/study";
+    }
+
+    @PostMapping("/study/unpublish")
+    public String studyUnPublish(@CurrentUser Account account, @PathVariable String path, Boolean publish,
+                                 RedirectAttributes attributes, Model model) {
+        Study study = studyService.getStudyToUpdateTFValues(path, account);
+        studyService.setClose(study);
+
+        model.addAttribute(account);
+        model.addAttribute(study);
+
+        attributes.addFlashAttribute("message", "스터디를 종료합니다.");
+        return "redirect:/study/"+ study.getEncodePath() +"/settings/study";
+    }
+
+    @PostMapping("/study/recruit/start")
+    public String studyStartRecruit(@CurrentUser Account account, @PathVariable String path, Boolean recruit,
+                                 RedirectAttributes attributes, Model model) {
+        Study study = studyService.getStudyToUpdateTFValues(path, account);
+
+        if(!study.canUpdateRecruiting()){
+            attributes.addFlashAttribute("message", "1시간 안에 인원 모집 설정을 여러번 변경할 수 없습니다");
+            return "redirect:/study/"+ study.getEncodePath() +"/settings/study";
+        }
+        studyService.setStartRecruit(study);
+        model.addAttribute(account);
+        model.addAttribute(study);
+        //TODO 모집을 시작할 수 있는 시간은 전에 오픈한 시간에 + 1시간 이내여야만 가능하게끔 설정
+
+        attributes.addFlashAttribute("message", "팀원 모집을 시작합니다.");
+        return "redirect:/study/"+ study.getEncodePath() +"/settings/study";
+    }
+
+    @PostMapping("/study/recruit/stop")
+    public String studyStopRecruit(@CurrentUser Account account, @PathVariable String path, Boolean recruit,
+                               RedirectAttributes attributes, Model model) {
+        Study study = studyService.getStudyToUpdateTFValues(path, account);
+        if(!study.canUpdateRecruiting()){
+            attributes.addFlashAttribute("message", "1시간 안에 인원 모집 설정을 여러번 변경할 수 없습니다");
+            return "redirect:/study/"+ study.getEncodePath() +"/settings/study";
+        }
+        studyService.setStopRecruit(study);
+        model.addAttribute(account);
+        model.addAttribute(study);
+
+        attributes.addFlashAttribute("message", "팀원 모집을 종료합니다.");
+        return "redirect:/study/"+ study.getEncodePath() +"/settings/study";
+    }
+
+    @PostMapping("/study/path")
+    public String studyUpdatePath(@CurrentUser Account account, @PathVariable String path, String newPath,
+                                RedirectAttributes attributes, Model model) {
+        Study study = studyService.getStudyToUpdatePath(account, path);
+
+        if(!studyService.isValidPath(newPath)){
+            model.addAttribute(account);
+            model.addAttribute(study);
+            model.addAttribute("studyPathError", "해당 스터디 경로는 사용할 수 없습니다. 다른 값을 입력하세요.");
+            return "study/settings/study";
+        }
+
+        studyService.updateStudyPath(study, newPath);
+        attributes.addFlashAttribute("message", "경로가 변경되었습니다");
+        return "redirect:/study/"+ study.getEncodePath() +"/settings/study";
+    }
+
+    @PostMapping("/study/title")
+    public String studyUpdateTitle(@CurrentUser Account account, @PathVariable String path, String newTitle,
+                                  RedirectAttributes attributes, Model model) {
+        Study study = studyService.getStudyToUpdateTitle(account, path);
+
+        if(!studyService.isValidPath(newTitle)){
+            model.addAttribute(account);
+            model.addAttribute(study);
+            model.addAttribute("studyTitleError", "해당 스터디 이름은 사용할 수 없습니다. 다른 값을 입력하세요.");
+            return "study/settings/study";
+        }
+
+        studyService.updateStudyTitle(study, newTitle);
+        attributes.addFlashAttribute("message", "이름이 변경되었습니다");
+        return "redirect:/study/"+ study.getEncodePath() +"/settings/study";
     }
 
 }

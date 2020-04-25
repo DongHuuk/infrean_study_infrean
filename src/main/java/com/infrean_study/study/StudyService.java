@@ -10,8 +10,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @Transactional
 public class StudyService {
@@ -35,22 +33,16 @@ public class StudyService {
         return study;
     }//path를 이용해서 찾아오는 것
 
-    private void checkIfManager(Study study, Account account) {
-        if(!study.isManager(account)){
-            throw new AccessDeniedException("해당 기능을 사용할 수 없습니다");
-        }
+    public Study getStudyToUpdateTFValues(String path, Account account) {
+        Study study = studyRepository.findStudyWithStatusByPath(path);
+        checkIfManager(study, account);
+        return study;
     }
 
     public Study getStudy(String path) {
         Study study = studyRepository.findByPath(path);
         checkIfExistingStudy(study, path);
         return study;
-    }
-
-    public void checkIfExistingStudy(Study study, String path){
-        if(study == null){
-            throw new IllegalArgumentException(path + "에 해당하는 스터디가 없습니다.");
-        }
     }
 
     public void updateStudyDescription(Study study, StudyDescriptionForm descriptionForm) {
@@ -61,26 +53,19 @@ public class StudyService {
         study.setImage(image);
     }
 
-    public void enableBanner(Study study) {
-        study.setUseBanner(true);
-    }
 
-    public void disableBanner(Study study) {
-        study.setUseBanner(false);
-    }
-
-    public void addStudyTag(String title, Tag tag) {
-        Study study = this.getStudy(title);
+    public void addStudyTag(String path, Tag tag, Account account) {
+        Study study = getStudyToUpdateTag(account, path);
         study.getTags().add(tag);
     }
 
-    public void removeStudyTag(String title, Tag tag) {
-        Study study = this.getStudy(title);
+    public void removeStudyTag(String path, Tag tag, Account account) {
+        Study study = getStudyToUpdateTag(account, path);
         study.getTags().remove(tag);
     }
 
-    public void addStudyZone(String path, Zone zone) {
-        Study study = getStudy(path);
+    public void addStudyZone(String path, Zone zone, Account account) {
+        Study study = getStudyToUpdateZone(account, path);
         study.getZones().add(zone);
     }
 
@@ -89,12 +74,91 @@ public class StudyService {
         study.getZones().remove(zone);
     }
 
+    private Study getStudyToUpdateTag(Account account, String path) {
+        Study study = studyRepository.findStudyWithTagsByPath(path);
+        checkIfManager(study, account);
+        return study;
+    }
+
+    private Study getStudyToUpdateZone(Account account, String path) {
+        Study study = studyRepository.findStudyWithZonesByPath(path);
+        checkIfManager(study, account);
+        return study;
+    }
+
+    public void enableBanner(Study study) {
+        study.setUseBanner(true);
+    }
+
+    public void disableBanner(Study study) {
+        study.setUseBanner(false);
+    }
+
     public String imgIfNonImg(String image) {
         String str = image.substring(image.indexOf(".") + 1).toLowerCase();
         if(str.equals("jpg") || str.equals("png") || str.equals("bmp")){
             return image;
         }else
             return "no";
+    }
 
+    private void checkIfManager(Study study, Account account) {
+        if(!study.isManager(account)){
+            throw new AccessDeniedException("해당 기능을 사용할 수 없습니다");
+        }
+    }
+
+    public void checkIfExistingStudy(Study study, String path){
+        if(study == null){
+            throw new IllegalArgumentException(path + "에 해당하는 스터디가 없습니다.");
+        }
+    }
+
+    public void setPublish(Study study) {
+        study.publish();
+    }
+
+    public void setClose(Study study) {
+        study.close();
+    }
+
+    public void setStartRecruit(Study study) {
+        study.startRecruiting();
+    }
+
+    public void setStopRecruit(Study study) {
+        study.stopRecruiting();
+    }
+
+    public Study getStudyToUpdatePath(Account account, String path) {
+        Study study = studyRepository.findStudyWithStudypathByPath(path);
+        checkIfExistingStudy(study, path);
+        checkIfManager(study, account);
+
+        return study;
+    }
+
+    public boolean isValidPath(String newPath) {
+        if(newPath.length() > 50){
+            return false;
+        }
+
+        return !studyRepository.existsByPath(newPath);
+    }
+
+    public void updateStudyPath(Study study, String newPath) {
+        study.setPath(newPath);
+    }
+
+    public void updateStudyTitle(Study study, String newTitle) {
+        study.setTitle(newTitle);
+    }
+
+    public Study getStudyToUpdateTitle(Account account, String path) {
+        Study study = studyRepository.findStudyWithStudytitleByPath(path);
+        checkIfExistingStudy(study, path);
+        checkIfManager(study, account);
+
+        return study;
     }
 }
