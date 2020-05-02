@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface StudyRepositoryExtension {
 
-    List<Study> findByKeywork(String keywork);
+    List<com.infrean_study.domain.Study> findByKeywork(String keywork);
 
 }
